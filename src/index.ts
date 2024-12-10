@@ -4,11 +4,22 @@ import { ValidationError } from './handlers/schema'
 import * as AnswerSchema from './schemas/answer'
 import { Endpoints, Endpoint, ClientOptions } from './types'
 
+/**
+ * Client class for interacting with the Grepper API.
+ */
 export default class Client {
 	private readonly api_key: string
 	private readonly headers: Headers
 	public readonly base_url: string
 	private readonly endpoints: Endpoints
+
+	/**
+	 * Constructs a new instance of the Client.
+	 * @param options - The options for configuring the client.
+	 * @param options.api_key - The API key for authentication (required).
+	 * @param options.headers - Optional custom headers to include in requests.
+	 * @param options.base_url - Optional custom base URL for the API. Defaults to 'https://api.grepper.com/v1'.
+	 */
 	constructor(options: ClientOptions) {
 		this.api_key = options.api_key
 		this.headers = new Headers({
@@ -27,6 +38,19 @@ export default class Client {
 		}
 	}
 
+	/**
+	 * Constructs a URL for a given endpoint with optional query parameters and path parameters.
+	 *
+	 * @param endpoint - The endpoint key (e.g., 'search', 'answer').
+	 * @param param - Optional path parameter (e.g., answer ID).
+	 * @param query - Optional query parameters.
+	 *
+	 * @returns The constructed URL.
+	 *
+	 * @example
+	 * const url = client.url('search', null, { query: 'TypeScript' });
+	 * console.log(url); // 'https://api.grepper.com/v1/answers/search?query=TypeScript'
+	 */
 	private get url() {
 		return <Q>(endpoint: Endpoint, param?: number, query?: Q) => {
 			const url = new URL(this.endpoints[endpoint])
@@ -41,6 +65,26 @@ export default class Client {
 		}
 	}
 
+	/**
+	 * Sends a request to the API and validates the response using the provided schema.
+	 *
+	 * @param options - The request options.
+	 * @param options.endpoint - The endpoint to call (e.g., 'search', 'answer').
+	 * @param options.schema - The schema to validate the response.
+	 * @param options.query - Optional query parameters.
+	 * @param options.param - Optional path parameter (e.g., answer ID).
+	 * @param options.body - Optional request body for POST requests.
+	 *
+	 * @returns An effect that resolves to the validated API response.
+	 *
+	 * @example
+	 * const response = this.query<AnswerSchema.List>({
+	 *   endpoint: 'search',
+	 *   query: { query: 'JavaScript' },
+	 *   schema: AnswerSchema.list
+	 * })
+	 * console.log(response) // Effect.Effect<S, ..., never>
+	 */
 	private query<S, Q = never, B = never>(options: {
 		endpoint: Endpoint
 		schema: Schema.Schema<S>
@@ -59,12 +103,28 @@ export default class Client {
 		)
 	}
 
+	/**
+	 * Global error handler to catch all errors and fail the effect.
+	 *
+	 * @returns An effect that fails with the provided error.
+	 */
 	private get handler() {
 		return Effect.catchAll((error: unknown) => {
 			return Effect.fail(error)
 		})
 	}
 
+	/**
+	 * Searches for answers based on a query string and an optional similarity score.
+	 *
+	 * @param query - The search query (e.g., 'JavaScript async').
+	 * @param similarity - Optional similarity score (default is 60). A higher value means more strict matching.
+	 *
+	 * @returns A promise that resolves to an array of matching answers.
+	 *
+	 * @example
+	 * const results = await client.search('async await', 80);
+	 */
 	search(query: string, similarity = 60): Promise<AnswerSchema.Answer[]> {
 		return this.query<AnswerSchema.List, AnswerSchema.Query>({
 			endpoint: 'search',
@@ -77,6 +137,22 @@ export default class Client {
 		)
 	}
 
+	/**
+	 * Retrieves an answer by its ID.
+	 *
+	 * Note: This endpoint is currently not accessible from the Grepper API and is still in development.
+	 * The function implementation is based on their official documentation and may require updates
+	 * once the endpoint becomes available.
+	 * @see https://www.grepper.com/api-docs/index.php#retreive-an-answer
+	 *
+	 * @param id - The ID of the answer to retrieve.
+	 *
+	 * @returns A promise that resolves to the answer object.
+	 *
+	 * @example
+	 * const answer = await client.answer(1);
+	 * console.log(answer); // { ...AnswerSchema.Answer }
+	 */
 	answer(id: number): Promise<AnswerSchema.Answer> {
 		return this.query<AnswerSchema.Answer>({
 			endpoint: 'answer',
@@ -85,6 +161,23 @@ export default class Client {
 		}).pipe(this.handler, Effect.runPromise)
 	}
 
+	/**
+	 * Updates the content of an existing answer.
+	 *
+	 * Note: This endpoint is currently not accessible from the Grepper API and is still in development.
+	 * The function implementation is based on their official documentation and may require updates
+	 * once the endpoint becomes available.
+	 * @see https://www.grepper.com/api-docs/index.php#update-a-specific-answer
+	 *
+	 * @param id - The ID of the answer to update.
+	 * @param content - The new content for the answer.
+	 *
+	 * @returns A promise that resolves to the updated status of the answer (including the success flag).
+	 *
+	 * @example
+	 * const updatedStatus = await client.update(1, 'New answer content');
+	 * console.log(updatedStatus); // { id: 1, success: true }
+	 */
 	update(
 		id: number,
 		content: AnswerSchema.Body['answer[content]']
