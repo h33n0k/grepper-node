@@ -9,6 +9,6 @@ export default tseslint.config(
 	tseslint.configs.stylistic,
 	prettierRecommended,
 	{
-		ignores: ['dist/']
+		ignores: ['dist/', 'jest.config.js']
 	}
 )

@@ -8,7 +8,6 @@ export class RequestError extends Data.TaggedError('Request') {
 		super()
 		this.error = error
 		this.message = this.getMessage()
-		console.log(this.error)
 	}
 
 	private getMessage() {

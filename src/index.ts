@@ -4,10 +4,12 @@ import { ValidationError } from './handlers/schema'
 import * as AnswerSchema from './schemas/answer'
 import { Endpoints, Endpoint, ClientOptions } from './types'
 
+export * from './types'
+
 /**
  * Client class for interacting with the Grepper API.
  */
-export default class Client {
+export class Client {
 	private readonly api_key: string
 	private readonly headers: Headers
 	public readonly base_url: string
