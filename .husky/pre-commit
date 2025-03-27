@@ -1,2 +1,2 @@
-yarn format
+yarn exec lint-staged
 yarn test
