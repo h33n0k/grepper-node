@@ -44,7 +44,7 @@ export const list = Schema.Struct({
  */
 export const update = Schema.Struct({
 	id: Schema.Number,
-	success: Schema.String
+	success: Schema.Literal('true', 'false')
 })
 
 export type Update = Schema.Schema.Type<typeof update>

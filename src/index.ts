@@ -1,6 +1,5 @@
 import { Effect, Schema } from 'effect'
 import fetchAndValidate from './helpers/fetch'
-import { ValidationError } from './handlers/schema'
 import * as AnswerSchema from './schemas/answer'
 import { Endpoints, Endpoint, ClientOptions } from './types'
 
@@ -191,16 +190,7 @@ export class Client {
 			body: { 'answer[content]': content }
 		}).pipe(
 			Effect.flatMap(({ id, success }) =>
-				Effect.try({
-					try: () => ({
-						id,
-						success:
-							typeof success === 'string'
-								? (JSON.parse(success) as boolean)
-								: false
-					}),
-					catch: () => new ValidationError()
-				}).pipe(Effect.andThen((status) => Effect.succeed(status)))
+				Effect.succeed({ id, success: success === 'true' ? true : false })
 			),
 			this.handler,
 			Effect.runPromise
