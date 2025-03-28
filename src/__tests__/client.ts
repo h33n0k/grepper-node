@@ -2,34 +2,110 @@ import { Effect } from 'effect'
 import { faker } from '@faker-js/faker/.'
 import { Client } from '..'
 import * as fetchAndValidate from '../helpers/fetch'
-import { mockedList } from '../helpers/__mocked__/fetch'
-import { list } from '../schemas/answer'
+import { mockedList, mockedAnswer } from '../helpers/__mocked__/fetch'
+import { answer, list, update } from '../schemas/answer'
 
-const getClient = () =>
-	new Client({ api_key: 'test-api-key', base_url: faker.internet.url() })
+describe('Client instance', () => {
+	let client: Client
 
-describe('Search method', () => {
+	beforeEach(() => {
+		client = new Client({
+			api_key: 'mocked_api_key'
+		})
+	})
+
 	afterEach(() => {
 		jest.resetAllMocks()
 	})
 
-	it('should returns fetched answers', async () => {
-		const client = getClient()
-		const mockedResponse = mockedList()
-		const mockedFetch = jest
-			.spyOn(fetchAndValidate, 'default')
-			.mockImplementation(() => Effect.succeed(mockedResponse))
-		const mockedQuery = faker.lorem.sentence()
-		const mockedSimilarity = 40
-		const result = await client.search(mockedQuery, mockedSimilarity)
-		expect(mockedFetch).toHaveBeenCalledWith(
-			expect.any(URL),
-			list,
-			expect.objectContaining({
-				method: 'GET'
-			})
-		)
+	describe('`search` method', () => {
+		it('should return fetched answers', async () => {
+			// Mocks
+			const query = faker.lorem.sentence()
+			const similarity = faker.number.int({ min: 40, max: 100 })
+			const mockedResponse = mockedList()
 
-		expect(result).toStrictEqual(mockedResponse.data)
+			// Spies
+			const fetchSpy = jest
+				.spyOn(fetchAndValidate, 'default')
+				.mockImplementation(() => Effect.succeed(mockedResponse))
+
+			const response = await client.search(query, similarity)
+
+			// Assertions
+			expect(fetchSpy).toHaveBeenCalledTimes(1)
+			expect(fetchSpy).toHaveBeenCalledWith(
+				expect.any(URL),
+				list,
+				expect.objectContaining({
+					method: 'GET',
+					headers: expect.any(Headers),
+					body: null
+				})
+			)
+
+			expect(response).toEqual(mockedResponse.data)
+		})
+	})
+
+	describe('`answer` method', () => {
+		it('should return answer if found', async () => {
+			// Mocks
+			const id = faker.number.int()
+			const mockedResponse = mockedAnswer()
+
+			// Spies
+			const fetchSpy = jest
+				.spyOn(fetchAndValidate, 'default')
+				.mockImplementation(() => Effect.succeed(mockedResponse))
+
+			const response = await client.answer(id)
+
+			// Assertions
+			expect(fetchSpy).toHaveBeenCalledTimes(1)
+			expect(fetchSpy).toHaveBeenCalledWith(
+				expect.any(URL),
+				answer,
+				expect.objectContaining({
+					method: 'GET',
+					headers: expect.any(Headers),
+					body: null
+				})
+			)
+
+			expect(response).toEqual(mockedResponse)
+		})
+	})
+
+	describe('`update` method', () => {
+		it('should return the updated status', async () => {
+			// Mocks
+			const id = faker.number.int()
+			const content = faker.lorem.sentence()
+			const mockedResponse = { id, success: 'true' }
+
+			// Spies
+			const fetchSpy = jest
+				.spyOn(fetchAndValidate, 'default')
+				.mockImplementation(() => Effect.succeed(mockedResponse))
+
+			const response = await client.update(id, content)
+
+			// Assertions
+			expect(fetchSpy).toHaveBeenCalledTimes(1)
+			expect(fetchSpy).toHaveBeenCalledWith(
+				expect.any(URL),
+				update,
+				expect.objectContaining({
+					method: 'POST',
+					headers: expect.any(Headers)
+				})
+			)
+
+			expect(response).toEqual({
+				...mockedResponse,
+				success: true
+			})
+		})
 	})
 })
