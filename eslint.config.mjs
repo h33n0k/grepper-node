@@ -10,5 +10,16 @@ export default tseslint.config(
 	prettierRecommended,
 	{
 		ignores: ['dist/', 'jest.config.js']
+	},
+	{
+		files: ['**/__tests__/*.ts'],
+		rules: {
+			'@typescript-eslint/no-explicit-any': 'off'
+		},
+		languageOptions: {
+			globals: {
+				jest: true
+			}
+		}
 	}
 )
