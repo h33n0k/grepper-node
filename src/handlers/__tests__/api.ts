@@ -1,54 +1,173 @@
 import { RequestError, ResponseError } from '../api'
 
-describe('RequestError', () => {
-	it('should initialize with the correct error message', () => {
-		for (const unit of [
-			['ECONNREFUSED', 'Connection refused.', 'TypeError'],
-			['ENOTFOUND', 'Server not found.', 'TypeError'],
-			['ETIMEDOUT', 'Request timed out.', 'TypeError'],
-			['AbortError', 'Request timed out.', 'DOMException'],
-			['Unexpected', 'Unexpected Error.', 'Error']
-		] as string[][]) {
-			let mockedError: unknown
-			switch (unit[2]) {
-				case 'Error':
-					mockedError = new Error(unit[0])
-					break
-				case 'DOMException':
-					mockedError = new DOMException('exception message', unit[0])
-					break
-				case 'TypeError':
-					mockedError = new TypeError('Network Error', {
-						cause: { code: unit[0] }
-					})
-					break
+describe('`handlers/api`:', () => {
+	describe('RequestError:', () => {
+		const tests: {
+			description: string
+			error: {
+				code?: string
+				type:
+					| 'TypeError'
+					| 'DOMException'
+					| 'Error'
+					| 'SyntaxError'
+					| 'Undefined'
+				expectedCode:
+					| 'UNEXPECTED'
+					| 'REFUSED'
+					| 'NOTFOUND'
+					| 'TIMEDOUT'
+					| 'ABORTED'
+					| 'NOTJSON'
 			}
-
-			if (!mockedError) {
-				throw new Error('Expected the mocked error to be defined.')
+		}[] = [
+			{
+				description: 'should handle refused connection error',
+				error: {
+					code: 'ECONNREFUSED',
+					type: 'TypeError',
+					expectedCode: 'REFUSED'
+				}
+			},
+			{
+				description: 'should handle unreachable server error',
+				error: {
+					code: 'ENOTFOUND',
+					type: 'TypeError',
+					expectedCode: 'NOTFOUND'
+				}
+			},
+			{
+				description: 'should handle timed out request error',
+				error: {
+					code: 'ETIMEDOUT',
+					type: 'TypeError',
+					expectedCode: 'TIMEDOUT'
+				}
+			},
+			{
+				description: 'should handle aborted request',
+				error: {
+					code: 'AbortError',
+					type: 'DOMException',
+					expectedCode: 'ABORTED'
+				}
+			},
+			{
+				description: 'should handle invalid JSON response',
+				error: {
+					type: 'SyntaxError',
+					expectedCode: 'NOTJSON'
+				}
+			},
+			{
+				description: 'should handle unknown error',
+				error: {
+					code: 'UNEXPECTED',
+					type: 'Error',
+					expectedCode: 'UNEXPECTED'
+				}
+			},
+			{
+				description: 'should handle non object error',
+				error: {
+					code: 'UNEXPECTED',
+					type: 'Undefined',
+					expectedCode: 'UNEXPECTED'
+				}
 			}
+		]
 
-			const error = new RequestError(mockedError)
-			expect(error.message).toBe(unit[1])
-		}
-	})
-})
+		describe.each(tests)('Test suite:', ({ description, error }) => {
+			it(description, () => {
+				let mockError: TypeError | DOMException | Error | 'non-object'
+				switch (error.type) {
+					case 'TypeError':
+						mockError = new TypeError('mocked error message', {
+							cause: { code: error.code }
+						})
+						break
+					case 'DOMException':
+						mockError = new DOMException('mocked error message', error.code)
+						break
+					case 'SyntaxError':
+						mockError = new SyntaxError('mocked error message')
+						break
+					case 'Undefined':
+						mockError = 'non-object'
+						break
+					case 'Error':
+					default:
+						mockError = new Error('mocked error message', {
+							cause: { code: error.code }
+						})
+						break
+				}
 
-describe('ResponseError', () => {
-	it('should initialize with the correct error message', () => {
-		for (const unit of [
-			[401, 'Invalid API KEY.'],
-			[429, 'Too many requests.'],
-			[500, 'Internal Grepper error.'],
-			[503, 'Temporarily offline, try again later.'],
-			[599, 'An unknown error occurred. Please try again.']
-		] as string[][]) {
-			const mockedResonse = new Response(null, {
-				status: unit[0] as unknown as number
+				if (!mockError)
+					throw new Error('Expected the mock error to be defined.')
+
+				const result = new RequestError(mockError)
+				expect(result).toBeDefined()
+				expect(result).toBeInstanceOf(RequestError)
+				expect(result.title).toEqual('Request Error')
+				expect(result.code).toEqual(error.expectedCode)
 			})
+		})
+	})
 
-			const error = new ResponseError(mockedResonse)
-			expect(error.message).toBe(unit[1])
-		}
+	describe('ResponseError:', () => {
+		const tests: {
+			description: string
+			status: number
+			expectedCode:
+				| 'UNEXPECTED'
+				| 'UNAUTHORIZED'
+				| 'RATE_LIMIT'
+				| 'INTERNAL'
+				| 'UNAVAILABLE'
+		}[] = [
+			{
+				description: 'should handle unauthorized error',
+				status: 401,
+				expectedCode: 'UNAUTHORIZED'
+			},
+			{
+				description: 'should handle rate limited request',
+				status: 429,
+				expectedCode: 'RATE_LIMIT'
+			},
+			{
+				description: 'should handle server internal error',
+				status: 500,
+				expectedCode: 'INTERNAL'
+			},
+			{
+				description: 'should handle unavailable server error',
+				status: 503,
+				expectedCode: 'UNAVAILABLE'
+			},
+			{
+				description: 'should handle unexpected error',
+				status: 599,
+				expectedCode: 'UNEXPECTED'
+			}
+		]
+
+		describe.each(tests)(
+			'Test suite:',
+			({ description, status, expectedCode }) => {
+				it(description, () => {
+					const mockError = new Response(null, { status })
+
+					const result = new ResponseError(mockError)
+
+					expect(result).toBeDefined()
+					expect(result).toBeInstanceOf(ResponseError)
+					expect(result.title).toEqual('Response Error')
+					expect(result.code).toEqual(expectedCode)
+				})
+			}
+		)
 	})
 })
