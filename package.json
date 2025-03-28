@@ -12,7 +12,8 @@
 		"release": "standard-version"
 	},
 	"lint-staged": {
-		"*.ts": ["prettier --write", "eslint"]
+		"*.ts": "eslint",
+		"*": "prettier --write"
 	},
 	"dependencies": {
 		"@effect/schema": "^0.75.5",
