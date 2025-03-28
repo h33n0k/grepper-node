@@ -11,9 +11,30 @@
 		"prepare": "husky",
 		"release": "standard-version"
 	},
+	"tsup": {
+		"format": [
+			"cjs",
+			"esm"
+		],
+		"entry": [
+			"./src/index.ts"
+		],
+		"dts": true,
+		"shims": true,
+		"skipNodeModulesBundle": true,
+		"clean": true
+	},
 	"lint-staged": {
 		"*.ts": "eslint",
 		"*": "prettier --write"
+	},
+	"prettier": {
+		"semi": false,
+		"singleQuote": true,
+		"printWidth": 80,
+		"trailingComma": "none",
+		"useTabs": true,
+		"tabWidth": 2
 	},
 	"dependencies": {
 		"@effect/schema": "^0.75.5",
