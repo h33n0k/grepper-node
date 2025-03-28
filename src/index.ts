@@ -4,6 +4,9 @@ import * as AnswerSchema from './schemas/answer'
 import { Endpoints, Endpoint, ClientOptions } from './types'
 
 export * from './types'
+export type { Answer } from './schemas/answer'
+export { RequestError, ResponseError } from './handlers/api'
+export { ValidationError } from './handlers/schema'
 
 /**
  * Client class for interacting with the Grepper API.
