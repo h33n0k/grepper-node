@@ -1,12 +1,30 @@
 import { Effect } from 'effect'
 import { faker } from '@faker-js/faker/.'
-import { Client } from '..'
+import { ResponseError, RequestError } from '../handlers/api'
+import { ValidationError } from '../handlers/schema'
+import {
+	Client,
+	RequestError as ExportedRequestError,
+	ResponseError as ExportedResponseError,
+	ValidationError as ExportedValidationError
+} from '..'
 import * as fetchAndValidate from '../helpers/fetch'
 import { mockedList, mockedAnswer } from '../helpers/__mocked__/fetch'
 import { answer, list, update } from '../schemas/answer'
 
 describe('Client instance', () => {
 	let client: Client
+
+	it('should exports tag errors', () => {
+		expect(ExportedRequestError).toBeDefined()
+		expect(ExportedRequestError).toEqual(RequestError)
+
+		expect(ExportedResponseError).toBeDefined()
+		expect(ExportedResponseError).toEqual(ResponseError)
+
+		expect(ExportedValidationError).toBeDefined()
+		expect(ExportedValidationError).toEqual(ValidationError)
+	})
 
 	beforeEach(() => {
 		client = new Client({
