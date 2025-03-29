@@ -1,6 +1,25 @@
 {
 	"name": "grepper-node",
 	"version": "0.0.0-development",
+	"description": "A Node.js client for the Grepper API, enabling seamless searching and management of code snippets programmatically.",
+	"keywords": [
+		"grepper",
+		"api",
+		"client",
+		"code-snippets",
+		"search",
+		"developer-tools"
+	],
+	"license": "MIT",
+	"author": "h33n0k <valentin@gorr.in> (https://valentingorr.in)",
+	"homepage": "https://github.com/h33n0k/grepper-node#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/h33n0k/grepper-node.git"
+	},
+	"bugs": {
+		"url": "https://github.com/h33n0k/grepper-node/issues"
+	},
 	"scripts": {
 		"build": "tsup",
 		"test": "jest --no-coverage",
@@ -9,7 +28,8 @@
 		"lint:fix": "eslint --fix",
 		"format": "prettier --write \"**/*.+(ts|mjs|json)\"",
 		"prepare": "husky",
-		"release": "standard-version"
+		"release": "standard-version",
+		"prepublishOnly": "npm run build"
 	},
 	"tsup": {
 		"format": [
@@ -35,6 +55,17 @@
 		"trailingComma": "none",
 		"useTabs": true,
 		"tabWidth": 2
+	},
+	"main": "dist/index.js",
+	"module": "dist/index.mjs",
+	"types": "dist/index.d.ts",
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"engines": {
+		"node": ">=18"
 	},
 	"dependencies": {
 		"@effect/schema": "^0.75.5",
