@@ -1,6 +1,6 @@
 {
 	"name": "grepper-node",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "A Node.js client for the Grepper API, enabling seamless searching and management of code snippets programmatically.",
 	"keywords": [
 		"grepper",

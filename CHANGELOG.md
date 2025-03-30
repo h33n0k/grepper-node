@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/h33n0k/grepper-node/compare/v1.0.0...v1.0.1) (2025-03-30)
+
+
+### Bug Fixes
+
+* trigger release ([661e174](https://github.com/h33n0k/grepper-node/commit/661e1744d2dcdc5860263ff9dddb98e6baf65b22))
+
 # 1.0.0 (2025-03-30)
 
 
